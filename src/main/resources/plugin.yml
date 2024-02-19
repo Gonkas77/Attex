@@ -1,0 +1,8 @@
+name: Attex
+version: '${project.version}'
+main: me.gonkas.attex.Attex
+api-version: '1.20'
+
+commands:
+  chat:
+    description: "Allows the user to switch chat channels."
