@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.naming.SizeLimitExceededException;
 import java.util.List;
 
 public class GroupChatCommand implements CommandExecutor, TabCompleter {
@@ -17,21 +18,28 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
 
-        GroupChat group = null;
+        GroupChat group = GroupChat.getGroupChat((Player) commandSender, args[0]);
         if (!(args[0].equals("create") || args[0].equals("accept") || args[0].equals("join"))) {
-            Player player = (Player) commandSender;
-            for (GroupChat gc : Attex.PLAYERGC.get(player)) {
-                if (args[0].equals(gc.getName())) {group = gc; break;}
-            } if (group == null) {commandSender.sendMessage("§9[Attex]§c You are not in a group with that name!"); return true;}
+            if (!group.getPlayers().contains((Player) commandSender)) {
+                commandSender.sendMessage("§9[Attex]§c You are not in a group with that name!");
+                return true;
+            }
         }
 
+        Player player = (Player) commandSender;
         switch (args[0]) {
             case "accept":
                 for (GroupChat gc : Attex.PLAYERINVITES.get((Player) commandSender)) {
                     if (args[1].equals(gc.getName())) {
-                        TO BE COMPLETED
-                    }
-                }
+                        try {group.addPlayer(player);}
+                        catch (SizeLimitExceededException ignored) {}
+                    } else {commandSender.sendMessage("§9[Attex]§c You do not have an invite for that group!"); return true;}
+                } break;
+            case "create":
+                new GroupChat(args[1], player);
+                break;
+            case "join":
+                if ()
         }
 
         switch (args[1]) {
