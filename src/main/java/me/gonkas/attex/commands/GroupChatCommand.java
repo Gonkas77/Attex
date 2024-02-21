@@ -2,6 +2,7 @@ package me.gonkas.attex.commands;
 
 import me.gonkas.attex.Attex;
 import me.gonkas.attex.chats.GroupChat;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -81,7 +82,58 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
                                 return true;
                             } break;
                         case "invite":
-                            TO DO
+                            Player addition = Bukkit.getPlayerExact(args[2]);
+                            if (addition != null) {
+                                group.invitePlayer(player, addition);
+                                group.inviteAnnouncement(player, addition);
+                            } else {
+                                Attex.playerSendWarn(player, "This player is offline!");
+                                return true;
+                            } break;
+                        case "leave":
+                            if (args[2].equals("confirm")) {
+                                group.removePlayer(player);
+                                group.leaveAnnouncement(player);
+                            } else {
+                                Attex.playerSendWarn(player, "Use §4\"/groupchat <groupchat> leave confirm\"§c to confirm!");
+                                return true;
+                            } break;
+                        case "promote":
+                            Player promoted = Bukkit.getPlayerExact(args[2]);
+                            if (group.getPlayers().contains(promoted)) {
+                                if (args[3].equals("owner")) {
+                                    group.setOwner(promoted);
+                                    group.promotionAnnouncement(promoted, true);
+                                } else if (args[3].equals("moderator")) {
+                                    if (group.getModerators().contains(promoted)) {
+                                        group.addModerator(promoted);
+                                        group.promotionAnnouncement(promoted, false);
+                                    } else {
+                                        group.info(player, "§cThis player is already a moderator!");
+                                        return true;
+                                    }
+                                } else {
+                                    Attex.playerSendWarn(player, "Invalid role inputted!");
+                                    return true;
+                                }
+                            } else {
+                                Attex.playerSendWarn(player, "This player is not in this Group Chat!");
+                                return true;
+                            } break;
+                        case "unpromote":
+                            Player unpromoted = Bukkit.getPlayerExact(args[2]);
+                            if (group.getPlayers().contains(unpromoted)) {
+                                if (group.getModerators().contains(unpromoted)) {
+                                    group.removeModerator(unpromoted);
+                                    group.info(player, "§b" + unpromoted.getName() + "§f is no longer a moderator.");
+                                } else {
+                                    Attex.playerSendWarn(player, "This player is not a moderator of this Group Chat!");
+                                    return true;
+                                }
+                            } else {
+                                Attex.playerSendWarn(player, "This player is not in this Group Chat!");
+                                return true;
+                            } break;
                     }
                 }
         } return true;
@@ -119,11 +171,15 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
                 return switch (args[1]) {
                     case "delete", "leave" -> compareStrings(args[2], Arrays.stream(new String[]{"confirm"}).toList());
                     case "invite" -> Arrays.stream(new String[]{"<player>"}).toList();
-                    case "promote" -> compareStrings(args[2], GroupChat.getGroupChat(player, args[0]).getPlayerNames());
+                    case "promote" -> compareStrings(args[2], GroupChat.getGroupChat(player, args[0]).getMemberNames());
                     default -> new ArrayList<>(0);
                 };
             }
-        } return new ArrayList<>(0);
+        } else if (args.length == 4) {
+
+        }
+
+        return new ArrayList<>(0);
     }
 
     public static List<String> compareStrings(String input, List<String> strings) {
