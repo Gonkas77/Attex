@@ -1,6 +1,7 @@
 package me.gonkas.attex.player;
 
 import me.gonkas.attex.Attex;
+import me.gonkas.attex.chats.GroupChat;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
@@ -11,7 +12,7 @@ public class PlayerSettings {
 
     public String chat;
     public String chat_target;
-    public List<String> group_chats;
+    public List<GroupChat> group_chats;
 
     public PlayerSettings(Player player) {
         File player_file = new File(Attex.PLAYERDATAFOLDER, player.getUniqueId() + ".yml");
@@ -19,9 +20,12 @@ public class PlayerSettings {
 
         chat = config.getString("chat.selected");
         chat_target = config.getString("chat.target");
-        group_chats = config.getStringList("chat.groups");
+        for (String name : config.getStringList("chat.groups")) {
+            group_chats.add(GroupChat.getGroupChatWithKey(player, name));
+        }
     }
 
     public String getSelectedChat() {return chat;}
-    public List<String> getGroupChats() {return group_chats;}
+    public String getChatTarget() {return chat_target;}
+    public List<GroupChat> getGroupChats() {return group_chats;}
 }

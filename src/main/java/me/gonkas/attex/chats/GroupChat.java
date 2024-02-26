@@ -50,9 +50,14 @@ public class GroupChat {
 
     public static GroupChat getGroupChat(Player player, String s) {
         for (String key : GROUPCHATKEYS.get(s)) {
-            if (GROUPCHATS.get(key).players.contains(player)) {return GROUPCHATS.get(key);}
+            if (GROUPCHATS.get(key).getPlayers().contains(player)) {return GROUPCHATS.get(key);}
         } return new GroupChat();
     }
+    public static GroupChat getGroupChatWithKey(Player player, String key) {
+        if (GROUPCHATS.containsKey(key)) {return GROUPCHATS.get(key);}
+        else {return new GroupChat();}
+    }
+
     public String getName() {return this.name;}
     public Player getOwner() {return this.owner;}
     public ArrayList<Player> getPlayers() {return this.players;}
@@ -134,8 +139,10 @@ public class GroupChat {
     public void info(Player player, String message) {
         player.sendMessage("§7[§bGC§7\\§9" + this.getName() + "§7]§f " + message);
     }
-    public void message(Player player, String message) {
-        player.sendMessage("§7[§bGC§7\\§9" + this.getName() + "§7] <§8" + player.getName() + "§7> §8" + message);
+    public void message(String message) {
+        for (Player player : getPlayers()) {
+            player.sendMessage("§7[§bGC§7\\§9" + getName() + "§7] <§8" + player.getName() + "§7> §8" + message);
+        }
     }
     public void joinAnnouncement(Player player) {
         for (Player p : this.players) {this.info("Player §b" + player.getName() + "§f has joined this group chat!");}

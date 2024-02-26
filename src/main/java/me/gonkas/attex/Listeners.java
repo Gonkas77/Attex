@@ -1,8 +1,12 @@
 package me.gonkas.attex;
 
+import me.gonkas.attex.chats.GroupChat;
 import me.gonkas.attex.player.PlayerData;
+import me.gonkas.attex.player.PlayerSettings;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 
@@ -18,5 +22,15 @@ public class Listeners implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         PlayerData.loadFile(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onPlayerChat(PlayerChatEvent event) {
+        Player player = event.getPlayer();
+        PlayerSettings settings = Attex.PLAYERSETTINGS.get(player);
+        if (settings.getSelectedChat().equals("group")) {
+            event.setCancelled(true);
+            GroupChat.getGroupChatWithKey(player, settings.getChatTarget()).message(event.getMessage());
+        }
     }
 }
