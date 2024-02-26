@@ -69,6 +69,12 @@ public class GroupChat {
         for (Player player : this.moderators) {names.add(player.getName());}
         return names;
     }
+    public HashMap<String, Boolean> getPromotable() {
+        HashMap<String, Boolean> map = new HashMap<>();
+        for (String mod : getModeratorNames()) {map.put(mod, false);}
+        for (String mem : getMemberNames()) {map.put(mem, true);}
+        return map;
+    }
 
     public void addPlayer(Player player) throws SizeLimitExceededException {
         if (this.size < 50) {
@@ -95,7 +101,7 @@ public class GroupChat {
 
     public void delete() {
         for (Player player : this.players) {Attex.PLAYERGC.get(player).remove(this);}
-        for (Player player : this.pending_invites) {Attex.PLAYERINVITES.get(player).remove(this);}
+        for (Player player : this.pending_invites) {Attex.PLAYERGCINVITES.get(player).remove(this);}
         GROUPCHATCODES.remove(this.active_code, this);
         GROUPCHATKEYS.remove(this.name);
         GROUPCHATS.remove(this.key);
@@ -110,11 +116,14 @@ public class GroupChat {
         this.active_code = result;
         return result;
     }
-    public void useCode(Player player, String code) throws SizeLimitExceededException {
-        if (this.size < 50 && GROUPCHATCODES.containsKey(code)) {
-            this.players.add(player);
-            this.size++;
-        } else {throw new SizeLimitExceededException();}
+    public static GroupChat useCode(Player player, String code) throws SizeLimitExceededException {
+        if (GROUPCHATCODES.containsKey(code)) {
+            GROUPCHATCODES.get(code).addPlayer(player);
+            return GROUPCHATCODES.get(code);
+        } else {
+            Attex.playerSendWarn(player, "This invite code has either expired or is invalid.");
+            return new GroupChat();
+        }
     }
 
     public void info(String message) {

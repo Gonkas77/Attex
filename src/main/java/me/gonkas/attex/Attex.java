@@ -24,7 +24,7 @@ public final class Attex extends JavaPlugin {
     public static File PLAYERDATAFOLDER = new File("plugins/Attex/player_data");
     public static HashMap<Player, PlayerSettings> PLAYERSETTINGS = new HashMap<>();
     public static HashMap<Player, ArrayList<GroupChat>> PLAYERGC = new HashMap<>();
-    public static HashMap<Player, ArrayList<GroupChat>> PLAYERINVITES = new HashMap<>();
+    public static HashMap<Player, ArrayList<GroupChat>> PLAYERGCINVITES = new HashMap<>();
 
     @Override
     public void onEnable() {

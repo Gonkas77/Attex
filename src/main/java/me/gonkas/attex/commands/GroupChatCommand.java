@@ -22,15 +22,19 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
 
         Player player = (Player) commandSender;
-        GroupChat group = GroupChat.getGroupChat(player, args[0]);
+        if (args.length <= 2) {
+            Attex.playerSendWarn(player, "This command requires at least 2 arguments!");
+            return true;
+        }
+
         switch (args[0]) {
 
             case "accept":
-                for (GroupChat gc : Attex.PLAYERINVITES.get(player)) {
+                for (GroupChat gc : Attex.PLAYERGCINVITES.get(player)) {
                     if (args[1].equals(gc.getName())) {
                         try {
-                            group.addPlayer(player);
-                            group.joinAnnouncement(player);
+                            gc.addPlayer(player);
+                            gc.joinAnnouncement(player);
                         }
                         catch (SizeLimitExceededException ignored) {
                             Attex.playerSendWarn(player, "This group has reached the player limit!");
@@ -45,30 +49,37 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
 
             case "join":
                 try {
-                    group.useCode(player, args[1]);
-                    group.joinAnnouncement(player);
+                    GroupChat gc = GroupChat.useCode(player, args[1]);
+                    gc.joinAnnouncement(player);
                 } catch (SizeLimitExceededException ignored) {
                     Attex.playerSendWarn(player, "This group has reached the player limit!");
                     return true;
                 } break;
 
             default:
+                GroupChat group = GroupChat.getGroupChat(player, args[0]);
                 if (!group.getPlayers().contains(player)) {
                     Attex.playerSendWarn(player, "You are not in a group chat with that name!");
                     return true;
                 } else {
+
                     switch (args[1]) {
+
                         default:
                             Attex.playerSendWarn(player, "Invalid sub-command inputted!");
                             break;
+
                         case "chat":
                             Attex.PLAYERSETTINGS.get(player).chat = "group";
                             Attex.PLAYERSETTINGS.get(player).chat_target = args[0];
                             break;
+
                         case "code":
                             group.inviteCodeAnnouncement(player);
                             break;
+
                         case "delete":
+
                             if (group.getOwner() == player) {
                                 if (args[2].equals("confirm")) {
                                     Attex.playerSendInfo(player, "Group Chat §b" + group.getName() + "§f has been deleted.");
@@ -81,7 +92,9 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
                                 Attex.playerSendWarn(player, "You must be the Group Chat's owner to delete it!");
                                 return true;
                             } break;
+
                         case "invite":
+
                             Player addition = Bukkit.getPlayerExact(args[2]);
                             if (addition != null) {
                                 group.invitePlayer(player, addition);
@@ -90,7 +103,9 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
                                 Attex.playerSendWarn(player, "This player is offline!");
                                 return true;
                             } break;
+
                         case "leave":
+
                             if (args[2].equals("confirm")) {
                                 group.removePlayer(player);
                                 group.leaveAnnouncement(player);
@@ -98,14 +113,21 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
                                 Attex.playerSendWarn(player, "Use §4\"/groupchat <groupchat> leave confirm\"§c to confirm!");
                                 return true;
                             } break;
+
                         case "promote":
+
                             Player promoted = Bukkit.getPlayerExact(args[2]);
                             if (group.getPlayers().contains(promoted)) {
                                 if (args[3].equals("owner")) {
-                                    group.setOwner(promoted);
-                                    group.promotionAnnouncement(promoted, true);
+                                    if (group.getOwner() != promoted) {
+                                        group.setOwner(promoted);
+                                        group.promotionAnnouncement(promoted, true);
+                                    } else {
+                                        group.info(player, "§cYou are already the owner of this Group Chat!");
+                                        return true;
+                                    }
                                 } else if (args[3].equals("moderator")) {
-                                    if (group.getModerators().contains(promoted)) {
+                                    if (!group.getModerators().contains(promoted)) {
                                         group.addModerator(promoted);
                                         group.promotionAnnouncement(promoted, false);
                                     } else {
@@ -120,7 +142,9 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
                                 Attex.playerSendWarn(player, "This player is not in this Group Chat!");
                                 return true;
                             } break;
+
                         case "unpromote":
+
                             Player unpromoted = Bukkit.getPlayerExact(args[2]);
                             if (group.getPlayers().contains(unpromoted)) {
                                 if (group.getModerators().contains(unpromoted)) {
@@ -156,9 +180,9 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
             } else {
                 return switch (args[0]) {
                     case "accept" -> {
-                        options.clear();
-                        for (GroupChat gc : Attex.PLAYERINVITES.get(player)) {options.add(gc.getName());}
-                        yield compareStrings(args[1], options);
+                        ArrayList<String> invites = new ArrayList<>();
+                        for (GroupChat gc : Attex.PLAYERGCINVITES.get(player)) {invites.add(gc.getName());}
+                        yield compareStrings(args[1], invites);
                     }
                     case "create" -> Arrays.stream(new String[]{"<name>"}).toList();
                     case "join" -> Arrays.stream(new String[]{"<code>"}).toList();
@@ -171,15 +195,18 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
                 return switch (args[1]) {
                     case "delete", "leave" -> compareStrings(args[2], Arrays.stream(new String[]{"confirm"}).toList());
                     case "invite" -> Arrays.stream(new String[]{"<player>"}).toList();
-                    case "promote" -> compareStrings(args[2], GroupChat.getGroupChat(player, args[0]).getMemberNames());
+                    case "promote" -> compareStrings(args[2], GroupChat.getGroupChat(player, args[0]).getPromotable().keySet().stream().toList());
                     default -> new ArrayList<>(0);
                 };
             }
         } else if (args.length == 4) {
-
-        }
-
-        return new ArrayList<>(0);
+            if (options.contains(args[0])) {
+                if (args[1].equals("promote")) {
+                    if (GroupChat.getGroupChat(player, args[0]).getPromotable().get(args[2])) {return Arrays.stream(new String[]{"moderator", "owner"}).toList();}
+                    else {return Arrays.stream(new String[]{"owner"}).toList();}
+                }
+            }
+        } return new ArrayList<>(0);
     }
 
     public static List<String> compareStrings(String input, List<String> strings) {
