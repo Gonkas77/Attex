@@ -22,7 +22,8 @@ public class PlayerData {
     public static void setDefaults(File file) throws IOException {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
         config.set("chat.selected", "local");
-        config.set("chat.groups", new ArrayList<String>(0));
+        config.set("chat.groups.get", new ArrayList<String>(0));
+        config.set("chat.groups.invites", new ArrayList<String>(0));
         config.save(file);
     }
 
@@ -31,8 +32,12 @@ public class PlayerData {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(player_file);
 
         Attex.PLAYERSETTINGS.put(player, new PlayerSettings(player));
+        Attex.PLAYERGCINVITES.put(player, new ArrayList<GroupChat>(0));
+        for (String s : config.getStringList("chat.groups.invites")) {
+            Attex.PLAYERGC.get(player).add(GroupChat.getGroupChat(player, s));
+        }
         Attex.PLAYERGC.put(player, new ArrayList<GroupChat>(0));
-        for (String s : config.getStringList("chat.groups")) {
+        for (String s : config.getStringList("chat.groups.get")) {
             Attex.PLAYERGC.get(player).add(GroupChat.getGroupChat(player, s));
         }
     }

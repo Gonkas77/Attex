@@ -168,11 +168,12 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
 
         Player player = (Player) commandSender;
         ArrayList<String> options = new ArrayList<>(0);
-        for (GroupChat gc : Attex.PLAYERGC.get((Player) commandSender)) {options.add(gc.getName());}
+        for (GroupChat gc : Attex.PLAYERGC.get(player)) {options.add(gc.getName());}
 
         if (args.length == 1) {
             options.addAll(Arrays.stream(new String[]{"accept", "create", "join"}).toList());
-            return compareStrings(args[0], options);
+            if (args[0].isEmpty()) {return options;}
+            else {return compareStrings(args[0], options);}
 
         } else if (args.length == 2) {
             if (options.contains(args[0])) {
@@ -214,11 +215,13 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
         ArrayList<String> matches = new ArrayList<>(0);
 
         for (String s : strings) {
-            try {candidates.add(s.substring(0, s.length()-1));}
-            catch (StringIndexOutOfBoundsException ignored) {candidates.add(null);}
+            try {candidates.add(s.substring(0, input.length()-1));}
+            catch (IndexOutOfBoundsException ignored) {candidates.add(null);}
         }
         for (int i=0; i < candidates.size(); i++) {
-            if (candidates.get(i).equals(input)) {matches.add(strings.get(i));}
+            if (candidates.get(i) != null) {
+                if (candidates.get(i).equals(input)) {matches.add(strings.get(i));}
+            }
         } return matches;
     }
 }

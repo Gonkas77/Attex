@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="Attex-v0.0.1b">
+    <output-path>$USER_HOME$/Desktop/My Private Servers/Testing Server/plugins</output-path>
+    <root id="archive" name="Attex-v0.0.1b.jar">
+      <element id="module-output" name="Attex" />
+    </root>
+  </artifact>
+</component>

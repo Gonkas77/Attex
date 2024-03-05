@@ -52,11 +52,12 @@ public final class Attex extends JavaPlugin {
     public static void consoleInfo(String s) {CONSOLE.sendMessage("§9[Attex/INFO] §b" + s);}
     public static void consoleWarn(String s) {CONSOLE.sendMessage("§9[Attex/WARN] §e" + s);}
 
-    public static void playerSendInfo(Player player, String s) {player.sendMessage("§8[§bAttex§8] §f");}
-    public static void playerSendWarn(Player player, String s) {player.sendMessage("§8[§bAttex§8] §c");}
+    public static void playerSendInfo(Player player, String s) {player.sendMessage("§8[§bAttex§8] §f" + s);}
+    public static void playerSendWarn(Player player, String s) {player.sendMessage("§8[§bAttex§8] §c" + s);}
 
     public static void setDefaultSettings(YamlConfiguration config) {
         config.addDefault("chat.selected", "local");
-        config.addDefault("chat.groups", Arrays.stream(new String[0]).toList());
+        config.addDefault("chat.groups.get", Arrays.stream(new String[0]).toList());
+        config.addDefault("chat.groups.invites", Arrays.stream(new String[0]).toList());
     }
 }
