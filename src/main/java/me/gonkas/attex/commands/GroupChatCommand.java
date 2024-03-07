@@ -22,7 +22,7 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
 
         Player player = (Player) commandSender;
-        if (args.length <= 2) {
+        if (args.length < 2) {
             Attex.playerSendWarn(player, "This command requires at least 2 arguments!");
             return true;
         }
@@ -30,31 +30,33 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
         switch (args[0]) {
 
             case "accept":
-                for (GroupChat gc : Attex.PLAYERGCINVITES.get(player)) {
-                    if (args[1].equals(gc.getName())) {
-                        try {
-                            gc.addPlayer(player);
-                            gc.joinAnnouncement(player);
-                        }
-                        catch (SizeLimitExceededException ignored) {
-                            Attex.playerSendWarn(player, "This group has reached the player limit!");
-                            return true;
-                        }
-                    } else {Attex.playerSendWarn(player, "You do not have an invite for that group!"); return true;}
+                if (Attex.PLAYERGCINVITES.get(player).isEmpty()) {Attex.playerSendWarn(player, "You do not have an invite for that group!"); return true;}
+                else {
+                    for (GroupChat gc : Attex.PLAYERGCINVITES.get(player)) {
+                        if (args[1].equals(gc.getName())) {
+                            try {
+                                gc.addPlayer(player);
+                                gc.joinAnnouncement(player);
+                            }
+                            catch (SizeLimitExceededException ignored) {
+                                Attex.playerSendWarn(player, "This group has reached the player limit!");
+                                return true;
+                            }
+                        } else {Attex.playerSendWarn(player, "You do not have an invite for that group!"); return true;}
+                    }
                 } break;
 
             case "create":
+                Attex.playerSendInfo(player, "You have created a new group chat named §9" + args[1] + "§f!");
                 new GroupChat(args[1], player);
                 break;
 
             case "join":
-                try {
-                    GroupChat gc = GroupChat.useCode(player, args[1]);
-                    gc.joinAnnouncement(player);
-                } catch (SizeLimitExceededException ignored) {
+                try {GroupChat.useCode(player, args[1]).joinAnnouncement(player);}
+                catch (SizeLimitExceededException ignored) {
                     Attex.playerSendWarn(player, "This group has reached the player limit!");
                     return true;
-                } break;
+                } break; ADD GROUPCHAT OPTION FOR FIXING!!!
 
             default:
                 GroupChat group = GroupChat.getGroupChat(player, args[0]);
@@ -215,7 +217,7 @@ public class GroupChatCommand implements CommandExecutor, TabCompleter {
         ArrayList<String> matches = new ArrayList<>(0);
 
         for (String s : strings) {
-            try {candidates.add(s.substring(0, input.length()-1));}
+            try {candidates.add(s.substring(0, input.length()));}
             catch (IndexOutOfBoundsException ignored) {candidates.add(null);}
         }
         for (int i=0; i < candidates.size(); i++) {

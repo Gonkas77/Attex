@@ -42,6 +42,7 @@ public class GroupChat {
         }
         this.key = key;
         GROUPCHATS.put(key, this);
+        Attex.PLAYERGC.get(owner).add(this);
     }
 
     private GroupChat() {
@@ -88,6 +89,7 @@ public class GroupChat {
         } else {throw new SizeLimitExceededException();}
     }
     public void removePlayer(Player player) {
+        Attex.PLAYERGC.get(player).remove(this);
         this.players.remove(player);
         this.size--;
     }
