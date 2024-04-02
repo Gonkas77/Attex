@@ -1,6 +1,6 @@
 name: Attex
-version: '0.1'
-main: me.gonkas.attex.Attex
+version: '${project.version}'
+main: me.gonkas.attexdev.Attex
 api-version: '1.20'
 
 commands:

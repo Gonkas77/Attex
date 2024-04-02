@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Attex-v0.0.1dev">
+    <output-path>$USER_HOME$/Desktop/FTP server/plugins</output-path>
+    <root id="archive" name="Attex-v0.0.1dev.jar">
+      <element id="module-test-output" name="Attex" />
+    </root>
+  </artifact>
+</component>

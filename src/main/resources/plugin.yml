@@ -8,3 +8,5 @@ commands:
     description: "Allows the user to switch chat channels."
   groupchat:
     description: "Basically WhatsApp but in Minecraft. No, you can't send images."
+  gc:
+    description: "Basically WhatsApp but in Minecraft. No, you can't send images."

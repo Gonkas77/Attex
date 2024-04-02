@@ -1,13 +1,16 @@
-package me.gonkas.attex.chats;
+package me.gonkas.attexdev.chats;
 
-import me.gonkas.attex.Attex;
+import me.gonkas.attexdev.Attex;
+import me.gonkas.attexdev.util.PlayerSendChat;
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import javax.naming.SizeLimitExceededException;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.io.File;
+import java.util.*;
+
+import static me.gonkas.attexdev.util.Strings.convertStringListToPlayerArrayList;
 
 public class GroupChat {
 
@@ -33,19 +36,39 @@ public class GroupChat {
 
         String key;
         if (GROUPCHATKEYS.containsKey(name)) {
-            key = name + "_" + (GROUPCHATKEYS.get(name).size() - 1);
+            key = name.toUpperCase() + "_" + (GROUPCHATKEYS.get(name).size());
             GROUPCHATKEYS.get(name).add(key);
         } else {
-            key = name + "_0";
-            GROUPCHATKEYS.put(name, new ArrayList<String>(List.of(new String[]{key})));
+            key = name.toUpperCase() + "_0";
+            GROUPCHATKEYS.put(name, new ArrayList<>(List.of(new String[]{key})));
         }
         this.key = key;
         GROUPCHATS.put(key, this);
-        Attex.PLAYERGC.get(owner).add(this);
+        Attex.PLAYERGC.get(owner).add(this.getKey());
     }
 
     private GroupChat() {
         this.players = new ArrayList<Player>(0);
+    }
+
+    private GroupChat(YamlConfiguration config) {
+        this.name = config.getString("name");
+        this.key = config.getString("key");
+        this.owner = Bukkit.getPlayer(config.getObject("owner", UUID.class));
+        this.size = config.getInt("size");
+        this.players.addAll(convertStringListToPlayerArrayList(config.getStringList("players")));
+        this.moderators.addAll(convertStringListToPlayerArrayList(config.getStringList("moderators")));
+        this.pending_invites.addAll(convertStringListToPlayerArrayList(config.getStringList("invited-players")));
+    }
+
+    public static void loadGroupChat(String key) {
+        File gc_file = new File(Attex.GROUPCHATSFOLDER, key);
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(gc_file);
+        GROUPCHATS.put(key, new GroupChat(config));
+
+        String name = config.getString("name");
+        if (GROUPCHATKEYS.containsKey(name)) {GROUPCHATKEYS.get(name).add(key);}
+        else {GROUPCHATKEYS.put(name, new ArrayList<>(List.of(new String[]{key})));}
     }
 
     public static GroupChat getGroupChat(Player player, String s) {
@@ -57,6 +80,7 @@ public class GroupChat {
         if (GROUPCHATS.containsKey(key)) {return GROUPCHATS.get(key);}
         else {return new GroupChat();}
     }
+    public boolean isGhost() {return (this.key == null);}
 
     public String getName() {return this.name;}
     public String getKey() {return this.key;}
@@ -94,7 +118,7 @@ public class GroupChat {
     public void invitePlayer(Player player, Player invited) {
         if (this.pending_invites.size() < 10) {this.pending_invites.add(invited);}
         else {this.info(player, "You have reached the pending invites limit!");}
-        Attex.PLAYERGCINVITES.get(invited).add(this);
+        Attex.PLAYERGCINVITES.get(invited).add(this.getKey());
     }
     public void removeInvite(Player player) {
         this.pending_invites.remove(player);
@@ -127,7 +151,7 @@ public class GroupChat {
             GROUPCHATCODES.get(code).addPlayer(player);
             return GROUPCHATCODES.get(code);
         } else {
-            Attex.playerSendWarn(player, "This invite code has either expired or is invalid.");
+            PlayerSendChat.GCInvalidInvite(player);
             return new GroupChat();
         }
     }
@@ -140,25 +164,25 @@ public class GroupChat {
     public void info(Player player, String message) {
         player.sendMessage("§7[§bGC§7\\§9" + this.getName() + "§7]§f " + message);
     }
-    public void message(String message) {
+    public void message(String sender, String message) {
         for (Player player : getPlayers()) {
-            player.sendMessage("§7[§bGC§7\\§9" + getName() + "§7] <§8" + player.getName() + "§7> §8" + message);
+            player.sendMessage("§7[§bGC§7\\§9" + getName() + "§7] <§8" + sender + "§7> §8" + message);
         }
     }
     public void joinAnnouncement(Player player) {
-        for (Player p : this.players) {this.info("Player §b" + player.getName() + "§f has joined this group chat!");}
+        this.info("Player §b" + player.getName() + "§f has joined this group chat!");
     }
     public void leaveAnnouncement(Player player) {
-        for (Player p : this.players) {this.info("Player §b" + player.getName() + "§f has left this group chat!");}
+        this.info("Player §b" + player.getName() + "§f has left this group chat!");
     }
     public void promotionAnnouncement(Player player, boolean bool) {
-        if (bool) {for (Player p : this.players) {this.info("Player §b" + player.getName() + "§f has become the owner of this group chat!");}}
-        else {for (Player p : this.players) {this.info("Player §b" + player.getName() + "§f has become a moderator of this group chat!");}}
+        if (bool) {this.info("Player §b" + player.getName() + "§f has become the owner of this group chat!");}
+        else {this.info("Player §b" + player.getName() + "§f has become a moderator of this group chat!");}
     }
     public void inviteCodeAnnouncement(Player player) {
-        for (Player p : this.players) {this.info("A new invite code §b" + generateInviteCode() + "§f has been generated by §b" + player.getName() + "§f.\n It will be active for 5 minutes.");}
+        this.info("A new invite code §b" + generateInviteCode() + "§f has been generated by §b" + player.getName() + "§f.\n It will be active for 5 minutes.");
     }
     public void inviteAnnouncement(Player player, Player invited) {
-        for (Player p : this.players) {this.info("§b" + invited.getName() + "§f has been invited to this Group Chat by §b" + player.getName() + "§f.");}
+        this.info("§b" + invited.getName() + "§f has been invited to this Group Chat by §b" + player.getName() + "§f.");
     }
 }

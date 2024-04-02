@@ -3,6 +3,7 @@ package me.gonkas.attex;
 import me.gonkas.attex.chats.GroupChat;
 import me.gonkas.attex.commands.ChatSelector;
 import me.gonkas.attex.commands.GroupChatCommand;
+import me.gonkas.attex.commands.GroupChatManagement;
 import me.gonkas.attex.player.PlayerSettings;
 import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
@@ -37,7 +38,8 @@ public final class Attex extends JavaPlugin {
 
         Bukkit.getPluginManager().registerEvents(new Listeners(), this);
         getCommand("chat").setExecutor(new ChatSelector());
-        getCommand("groupchat").setExecutor(new GroupChatCommand());
+        getCommand("gc").setExecutor(new GroupChatCommand());
+        getCommand("groupchat").setExecutor(new GroupChatManagement());
 
         CONSOLE.sendMessage("");
         CONSOLE.sendMessage("§9[Attex]§a Plugin v0.1 initialized successfully!");
