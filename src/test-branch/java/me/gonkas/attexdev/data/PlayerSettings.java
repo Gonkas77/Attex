@@ -6,9 +6,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import static me.gonkas.attexdev.util.Strings.convertKeyListToGCNameList;
 import static me.gonkas.attexdev.util.Strings.convertStringListToUUIDArrayList;
 
 public class PlayerSettings {
@@ -22,7 +24,7 @@ public class PlayerSettings {
 
     boolean[] changes = new boolean[6]; // minor optimization to only save changed settings and not all settings
 
-    public PlayerSettings(Player player, YamlConfiguration config) {
+    public PlayerSettings(YamlConfiguration config) {
         chat_type = config.getString("info.chats.type").charAt(0);
         last_pm = config.getObject("info.chats.last-pm", UUID.class);
         last_gc = config.getString("info.groupchats.last-gc");
@@ -30,17 +32,24 @@ public class PlayerSettings {
         groupchatinv_list = (ArrayList<String>) config.getStringList("info.groupchats.invites");
         friend_list = convertStringListToUUIDArrayList(config.getStringList("info.friends.list"));
 
-        Attex.PLAYERGC.put(player, groupchat_list);
-        Attex.PLAYERGCINVITES.put(player, groupchatinv_list);
+        DataManagement.loadGroupChatFile(last_gc);
     }
 
     public char getChatType() {return chat_type;}
     public UUID getLastPMTarget() {return last_pm;}
     public String getLastGCTargetKey() {return last_gc;}
-    public ArrayList<String> getGroupChatList() {return groupchat_list;}
-    public ArrayList<String> getGroupChatInviteList() {return groupchatinv_list;}
-    public ArrayList<UUID> getFriendList() {return friend_list;}
+    public ArrayList<String> getGroupChatKeyList() {return groupchat_list;}
+    public ArrayList<String> getGroupChatInvitesKeyList() {return groupchatinv_list;}
+    public ArrayList<UUID> getFriendsUUIDList() {return friend_list;}
     public boolean[] getChanges() {return changes;}
+
+    public String getGroupChatNamesToString() {
+        StringBuilder list = new StringBuilder();
+        ArrayList<String> names = convertKeyListToGCNameList(groupchat_list);
+        for (int i=0; i < names.size() - 1; i++) {list.append("§b").append(names.get(i)).append("§f, ");}
+        list.deleteCharAt(list.length() - 2).append("and ").append("§b").append(names.get(names.size() - 1)).append("§f.");
+        return list.toString();
+    }
 
     public boolean setChatType(char c) {
         if (c == 'l' || c == 't' || c == 'p') {
@@ -62,17 +71,39 @@ public class PlayerSettings {
         changes[1] = true;
         return true;
     }
-    public boolean setGCTarget(String key) {
+    public boolean setGCTarget(String key) throws IOException {
+
+        // unloading previous group chat if no other gc member is currently using it
+        GroupChat gc = GroupChat.getGroupChatWithKey(last_gc);
+        boolean unload = true;
+        for (Player p : gc.getPlayers()) {
+            if (Attex.PLAYERSETTINGS.get(p).getLastGCTargetKey().equals(last_gc)) {unload = false; break;}
+        }
+        if (unload) {GroupChat.unloadGroupChat(last_gc);}
+
+        // actually setting the gc target
         GroupChat group = GroupChat.getGroupChatWithKey(key);
         if (group.isGhost()) {return false;}
         else {
+            DataManagement.loadGroupChatFile(key);
             last_gc = group.getKey();
             changes[2] = true;
         } return true;
     }
-    public boolean setGCTarget(GroupChat gc) {
+    public boolean setGCTarget(GroupChat gc) throws IOException {
+
+        // unloading previous group chat if no other gc member is currently using it
+        GroupChat group = GroupChat.getGroupChatWithKey(last_gc);
+        boolean unload = true;
+        for (Player p : group.getPlayers()) {
+            if (Attex.PLAYERSETTINGS.get(p).getLastGCTargetKey().equals(last_gc)) {unload = false; break;}
+        }
+        if (unload) {GroupChat.unloadGroupChat(last_gc);}
+
+        // actually setting the gc target
         if (gc.isGhost()) {return false;}
         else {
+            DataManagement.loadGroupChatFile(gc.getKey());
             last_gc = gc.getKey();
             changes[2] = true;
         } return true;

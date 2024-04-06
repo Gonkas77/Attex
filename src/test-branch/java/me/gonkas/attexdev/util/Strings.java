@@ -1,5 +1,6 @@
 package me.gonkas.attexdev.util;
 
+import me.gonkas.attexdev.chats.GroupChat;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -51,5 +52,12 @@ public class Strings {
         for (String s : list) {
             players.add(Bukkit.getPlayer(UUID.fromString(s)));
         } return players;
+    }
+
+    public static ArrayList<String> convertKeyListToGCNameList(List<String> list) {
+        ArrayList<String> gcs = new ArrayList<>(0);
+        for (String key : list) {
+            gcs.add(GroupChat.getGroupChatWithKey(key).getName());
+        } return gcs;
     }
 }

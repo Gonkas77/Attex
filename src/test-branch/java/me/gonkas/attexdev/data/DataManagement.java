@@ -1,36 +1,37 @@
 package me.gonkas.attexdev.data;
 
 import me.gonkas.attexdev.Attex;
+import me.gonkas.attexdev.chats.GroupChat;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InaccessibleObjectException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class DataManagement {
 
-    public static void createPlayerSettingsFile(Player player) throws IOException, InaccessibleObjectException {
-        String uuid = player.getUniqueId().toString();
-        File data_file = new File(Attex.PLAYERSETTINGSFOLDER, uuid + ".yml");
+    private static ArrayList<String> LOADEDGROUPCHATS = new ArrayList<>(0);
+
+    public static void createPlayerSettingsFile(Player player) throws IOException {
+        File data_file = new File(Attex.PLAYERSETTINGSFOLDER, player.getUniqueId() + ".yml");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(data_file);
 
         config.set("last-username", player.getName());
         config.set("info.chats.type", "l"); // 'l' == local; 't' == team; 'p' == party
-        config.set("info.chats.last-pm", uuid);
+        config.set("info.chats.last-pm", player.getUniqueId().toString());
         config.set("info.groupchats.last-gc", "");
         config.set("info.groupchats.list", new ArrayList<String>(0));
         config.set("info.groupchats.invites", new ArrayList<String>(0));
-        config.set("info.friends.list", Arrays.stream(new String[]{uuid.toString()}).toList()); // delete this later on !!!!!!!!!!!!!!!!!!
+        config.set("info.friends.list", Arrays.stream(new String[]{player.getUniqueId().toString()}).toList()); // delete this later on !!!!!!!!!!!!!!!!!!
         config.save(data_file);
     }
 
     public static void loadPlayerSettingsFile(Player player) {
         File data_file = new File(Attex.PLAYERSETTINGSFOLDER, player.getUniqueId() + ".yml");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(data_file);
-        Attex.PLAYERSETTINGS.put(player, new PlayerSettings(player, config));
+        Attex.PLAYERSETTINGS.put(player, new PlayerSettings(config));
     }
 
     public static void savePlayerSettingsFile(Player player) throws IOException {
@@ -46,9 +47,51 @@ public class DataManagement {
                     case 0 -> config.set("info.chats.type", settings.getChatType());
                     case 1 -> config.set("info.chats.last-pm", settings.getLastPMTarget());
                     case 2 -> config.set("info.groupchats.last-gc", settings.getLastGCTargetKey());
-                    case 3 -> config.set("info.groupchats.list", settings.getGroupChatList());
-                    case 4 -> config.set("info.groupchats.invites", settings.getGroupChatInviteList());
-                    case 5 -> config.set("info.friends.list", settings.getFriendList());
+                    case 3 -> config.set("info.groupchats.list", settings.getGroupChatKeyList());
+                    case 4 -> config.set("info.groupchats.invites", settings.getGroupChatInvitesKeyList());
+                    case 5 -> config.set("info.friends.list", settings.getFriendsUUIDList());
+                }
+            }
+        } config.save(data_file);
+    }
+
+    public static void createGroupChatFile(GroupChat gc) throws IOException {
+        File data_file = new File(Attex.GROUPCHATSFOLDER, gc.getKey() + ".yml");
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(data_file);
+
+        config.set("name", gc.getName());
+        config.set("key", gc.getKey());
+        config.set("size", gc.getSize());
+        config.set("owner", gc.getOwner().getUniqueId());
+        config.set("members", gc.getMembersUUIDs());
+        config.set("moderators", gc.getModeratorsUUIDs());
+        config.set("invited-players", gc.getPendingInviteesUUIDs());
+        config.save(data_file);
+    }
+
+    public static void loadGroupChatFile(String key) {
+        if (!LOADEDGROUPCHATS.contains(key)) {
+            File data_file = new File(Attex.GROUPCHATSFOLDER, key + ".yml");
+            YamlConfiguration config = YamlConfiguration.loadConfiguration(data_file);
+            GroupChat.loadGroupChat(config);
+            LOADEDGROUPCHATS.add(key);
+        }
+    }
+
+    public static void saveGroupChatFile(GroupChat gc) throws IOException {
+        File data_file = new File(Attex.PLAYERSETTINGSFOLDER, gc.getKey() + ".yml");
+        if (!data_file.exists()) {createGroupChatFile(gc); return;}
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(data_file);
+
+        for (int i=0; i < gc.getChanges().length; i++) {
+            if (gc.getChanges()[i]) {
+                switch (i) {
+                    case 0 -> config.set("name", gc.getName());
+                    case 1 -> config.set("size", gc.getSize());
+                    case 2 -> config.set("owner", gc.getOwner().getUniqueId());
+                    case 3 -> config.set("members", gc.getMembersUUIDs());
+                    case 4 -> config.set("moderators", gc.getModeratorsUUIDs());
+                    case 5 -> config.set("invited-players", gc.getPendingInviteesUUIDs());
                 }
             }
         } config.save(data_file);
