@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class DataManagement {
 
@@ -19,12 +20,12 @@ public class DataManagement {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(data_file);
 
         config.set("last-username", player.getName());
-        config.set("info.chats.type", "l"); // 'l' == local; 't' == team; 'p' == party
-        config.set("info.chats.last-pm", player.getUniqueId().toString());
-        config.set("info.groupchats.last-gc", "");
-        config.set("info.groupchats.list", new ArrayList<String>(0));
-        config.set("info.groupchats.invites", new ArrayList<String>(0));
-        config.set("info.friends.list", Arrays.stream(new String[]{player.getUniqueId().toString()}).toList()); // delete this later on !!!!!!!!!!!!!!!!!!
+        config.set("chats.type", "l"); // 'l' == local; 't' == team; 'p' == party; 'g' == group
+        config.set("chats.last-pm", player.getUniqueId().toString());
+        config.set("groupchats.last-gc", "");
+        config.set("groupchats.list", new ArrayList<String>(0));
+        config.set("groupchats.invites", new ArrayList<String>(0));
+        config.set("friends.list", Arrays.stream(new String[]{player.getUniqueId().toString()}).toList()); // delete this later on !!!!!!!!!!!!!!!!!!
         config.save(data_file);
     }
 
@@ -44,15 +45,31 @@ public class DataManagement {
         for (int i=0; i < settings.getChanges().length; i++) {
             if (settings.getChanges()[i]) {
                 switch (i) {
-                    case 0 -> config.set("info.chats.type", settings.getChatType());
-                    case 1 -> config.set("info.chats.last-pm", settings.getLastPMTarget());
-                    case 2 -> config.set("info.groupchats.last-gc", settings.getLastGCTargetKey());
-                    case 3 -> config.set("info.groupchats.list", settings.getGroupChatKeyList());
-                    case 4 -> config.set("info.groupchats.invites", settings.getGroupChatInvitesKeyList());
-                    case 5 -> config.set("info.friends.list", settings.getFriendsUUIDList());
+                    case 0 -> config.set("chats.type", settings.getChatType());
+                    case 1 -> config.set("chats.last-pm", settings.getLastPMTarget());
+                    case 2 -> config.set("groupchats.last-gc", settings.getLastGCTargetKey());
+                    case 3 -> config.set("groupchats.list", settings.getGroupChatKeyList());
+                    case 4 -> config.set("groupchats.invites", settings.getGroupChatInvitesKeyList());
+                    case 5 -> config.set("friends.list", settings.getFriendsUUIDList());
                 }
             }
         } config.save(data_file);
+    }
+
+    public static void createPlayerStatsFile(Player player) throws IOException {
+        File data_file = new File(Attex.PLAYERSTATSFOLDER, player.getUniqueId() + ".yml");
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(data_file);
+
+        config.set("kills", new ArrayList<>(List.of(0)));
+        config.set("deaths", new ArrayList<>(List.of(0)));
+        config.set("kills", new ArrayList<>(List.of(0)));
+        config.set("kills", new ArrayList<>(List.of(0)));
+        config.set("kills", new ArrayList<>(List.of(0)));
+        config.set("kills", new ArrayList<>(List.of(0)));
+        config.set("kills", new ArrayList<>(List.of(0)));
+        config.set("kills", new ArrayList<>(List.of(0)));
+
+        config.save(data_file);
     }
 
     public static void createGroupChatFile(GroupChat gc) throws IOException {

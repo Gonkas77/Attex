@@ -5,6 +5,7 @@ import me.gonkas.attexdev.commands.GCCommand;
 import me.gonkas.attexdev.commands.GroupChatCommand;
 import me.gonkas.attexdev.data.DataManagement;
 import me.gonkas.attexdev.data.PlayerSettings;
+import me.gonkas.attexdev.data.PlayerStats;
 import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -20,10 +21,11 @@ public final class Attex extends JavaPlugin {
     public static ConsoleCommandSender CONSOLE = Bukkit.getConsoleSender();
 
     public static File PLAYERSETTINGSFOLDER = new File("plugins/Attex/data/player_settings");
-    public static File PLAYERSTATSFOLDER = new File("plugins/Attex/data/player_statistics");
+    public static File PLAYERSTATSFOLDER = new File("plugins/Attex/data/player_stats");
     public static File GROUPCHATSFOLDER = new File("plugins/Attex/data/groupchats");
 
     public static HashMap<Player, PlayerSettings> PLAYERSETTINGS = new HashMap<>();
+    public static HashMap<Player, PlayerStats> PLAYERSTATS = new HashMap<>();
     public static HashMap<String, Short> GROUPCHATCODES = new HashMap<>();
 
     @Override

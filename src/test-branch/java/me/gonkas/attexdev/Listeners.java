@@ -1,6 +1,9 @@
 package me.gonkas.attexdev;
 
+import me.gonkas.attexdev.chats.GroupChat;
 import me.gonkas.attexdev.data.DataManagement;
+import me.gonkas.attexdev.data.PlayerSettings;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChatEvent;
@@ -29,6 +32,11 @@ public class Listeners implements Listener {
 
     @EventHandler
     public void onPlayerChat(PlayerChatEvent event) {
-        // TO DO
+        Player player = event.getPlayer();
+        PlayerSettings settings = Attex.PLAYERSETTINGS.get(player);
+        if (settings.getChatType() == 'g') {
+            event.setCancelled(true);
+            GroupChat.getGroupChatWithKey(settings.getLastGCTargetKey()).message(player.getName(), event.getMessage());
+        }
     }
 }

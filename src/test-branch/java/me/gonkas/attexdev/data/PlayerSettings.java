@@ -15,7 +15,7 @@ import static me.gonkas.attexdev.util.Strings.convertStringListToUUIDArrayList;
 
 public class PlayerSettings {
 
-    char chat_type; // 'l' == local; 't' == team; 'p' == party
+    char chat_type; // 'l' == local; 't' == team; 'p' == party; 'g' == group
     UUID last_pm; // player uuid
     String last_gc; // groupchat key
     ArrayList<String> groupchat_list; // array of gc keys
@@ -52,7 +52,7 @@ public class PlayerSettings {
     }
 
     public boolean setChatType(char c) {
-        if (c == 'l' || c == 't' || c == 'p') {
+        if (c == 'l' || c == 't' || c == 'p' || c == 'g') {
             chat_type = c;
             changes[0] = true;
             return true;
